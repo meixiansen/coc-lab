@@ -1,0 +1,15 @@
+{
+  "name": "coc-lab",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Interactive smartphone circle-of-confusion and depth-of-field laboratory.",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node tests/optics.test.mjs",
+    "check": "node --check server.mjs && node --check public/js/app.js && node --check public/js/optics.js && node --check public/js/viz.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

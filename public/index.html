@@ -1,0 +1,986 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="一个面向手机摄影的交互式弥散圆实验室：实时计算允许 CoC、景深、超焦距、背景虚化与衍射，并观察每个参数如何改变结果。"
+    />
+    <meta name="theme-color" content="#080d0f" />
+    <title>CoC Lab — 手机弥散圆与景深实验台</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./css/styles.css" />
+  </head>
+  <body>
+    <div class="ambient" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="#top" aria-label="CoC Lab 首页">
+          <span class="brand-mark" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </span>
+          <span class="brand-word">CoC<span class="brand-slash">/</span>LAB</span>
+        </a>
+
+        <nav class="top-nav" aria-label="页面导航">
+          <a href="#lab">实验台</a>
+          <a href="#effects">参数效应</a>
+          <a href="#calculation">计算公式</a>
+          <a href="#theory">原理</a>
+        </nav>
+
+        <div class="top-actions">
+          <span class="model-status"
+            ><i aria-hidden="true"></i>THIN-LENS / LIVE</span
+          >
+          <button class="button ghost" id="shareBtn" type="button">
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path
+                d="M6.3 9.7 9.7 6.3M6.8 4.4l1-1a2.8 2.8 0 0 1 4 4l-1 1M9.2 11.6l-1 1a2.8 2.8 0 0 1-4-4l1-1"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.25"
+                stroke-linecap="round"
+              />
+            </svg>
+            <span>复制参数链接</span>
+          </button>
+          <button
+            class="icon-button"
+            id="resetBtn"
+            type="button"
+            aria-label="恢复默认参数"
+            title="恢复默认参数"
+          >
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path
+                d="M3.1 6.4A5 5 0 1 1 3 9.2M3.1 3.2v3.4h3.4"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero page-width">
+        <div class="hero-copy">
+          <p class="eyebrow reveal">
+            <span class="eyebrow-rule" aria-hidden="true"></span>
+            SMARTPHONE OPTICS / FIELD LAB 01
+          </p>
+          <h1 class="reveal reveal-delay-1">
+            弥散圆，<br />
+            <span class="hero-accent">景深的单位。</span>
+          </h1>
+          <p class="hero-lede reveal reveal-delay-2">
+            手机传感器只有指甲盖大小，景深却没有一个固定答案。CoC
+            是观看条件写下的门槛，也是理解景深、超焦距和背景虚化的起点。
+          </p>
+          <div class="hero-meta reveal reveal-delay-3">
+            <span><b>01</b> 允许模糊</span>
+            <span><b>02</b> 实际弥散</span>
+            <span><b>03</b> 衍射与像素</span>
+          </div>
+        </div>
+
+        <div class="hero-figure reveal reveal-delay-2" aria-hidden="true">
+          <div class="hero-orbit">
+            <svg viewBox="0 0 480 370">
+              <defs>
+                <radialGradient id="heroGlow" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#b7f36b" stop-opacity=".2" />
+                  <stop offset="50%" stop-color="#6fe7d2" stop-opacity=".06" />
+                  <stop offset="100%" stop-color="#6fe7d2" stop-opacity="0" />
+                </radialGradient>
+                <linearGradient id="heroRing" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#b7f36b" stop-opacity=".75" />
+                  <stop offset="55%" stop-color="#6fe7d2" stop-opacity=".22" />
+                  <stop offset="100%" stop-color="#ffb56b" stop-opacity=".58" />
+                </linearGradient>
+              </defs>
+              <circle cx="240" cy="184" r="172" fill="url(#heroGlow)" />
+              <circle
+                cx="240"
+                cy="184"
+                r="143"
+                fill="none"
+                stroke="rgba(255,255,255,.13)"
+                stroke-width="1"
+              />
+              <circle
+                cx="240"
+                cy="184"
+                r="115"
+                fill="none"
+                stroke="url(#heroRing)"
+                stroke-width="1.2"
+                stroke-dasharray="2 7"
+                class="orbit-dash"
+              />
+              <circle
+                cx="240"
+                cy="184"
+                r="76"
+                fill="none"
+                stroke="rgba(183,243,107,.24)"
+                stroke-width="1"
+              />
+              <circle
+                cx="240"
+                cy="184"
+                r="43"
+                fill="none"
+                stroke="rgba(255,181,107,.44)"
+                stroke-width="1"
+                stroke-dasharray="1 5"
+              />
+              <line
+                x1="72"
+                y1="184"
+                x2="408"
+                y2="184"
+                stroke="rgba(255,255,255,.09)"
+              />
+              <line
+                x1="240"
+                y1="16"
+                x2="240"
+                y2="352"
+                stroke="rgba(255,255,255,.09)"
+              />
+              <circle cx="240" cy="184" r="3.2" fill="#b7f36b" />
+              <circle cx="281" cy="184" r="2.2" fill="#ffb56b" />
+              <circle cx="240" cy="228" r="1.6" fill="#ff7ab2" />
+              <text
+                x="240"
+                y="178"
+                fill="none"
+                stroke="rgba(255,255,255,.38)"
+                stroke-width=".7"
+                text-anchor="middle"
+                font-family="Georgia, serif"
+                font-size="54"
+                font-style="italic"
+              >
+                c
+              </text>
+              <g
+                fill="#819094"
+                font-family="Cascadia Code, Consolas, monospace"
+                font-size="8"
+                letter-spacing=".12em"
+              >
+                <text x="240" y="30" text-anchor="middle">THRESHOLD</text>
+                <text x="64" y="188" text-anchor="end">PIXEL</text>
+                <text x="417" y="188">AIRY</text>
+                <text x="240" y="362" text-anchor="middle">REAL BLUR</text>
+              </g>
+            </svg>
+            <div class="hero-live-readout">
+              <span class="live-pip"></span>
+              <span>当前允许 CoC</span>
+              <b id="heroCocValue">3.05 µm</b>
+            </div>
+          </div>
+          <div class="hero-caption">
+            <span>FIG. 01</span>
+            <span>同一画面，不同观看条件，不同“清晰”的边界。</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="lab-section page-width" id="lab">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">01 / SIMULATOR</p>
+            <h2>把参数拧到不同位置</h2>
+          </div>
+          <p class="section-note">
+            所有结果即时计算。先选场景，再改变光圈、焦距或对焦距离，观察“允许模糊”与“实际模糊”是否越过门槛。
+          </p>
+        </div>
+
+        <div class="lab-grid">
+          <aside class="control-stack" aria-label="参数控制">
+            <section class="panel control-panel">
+              <div class="panel-head">
+                <div>
+                  <span class="panel-kicker">CAPTURE</span>
+                  <h3>拍摄参数</h3>
+                </div>
+                <span class="live-badge"><i aria-hidden="true"></i>LIVE</span>
+              </div>
+
+              <div class="scene-presets" role="group" aria-label="场景预设">
+                <button type="button" data-scene="portrait" class="is-active">
+                  人像
+                </button>
+                <button type="button" data-scene="closeup">近摄</button>
+                <button type="button" data-scene="landscape">风光</button>
+                <button type="button" data-scene="street">街拍</button>
+              </div>
+
+              <div class="field">
+                <div class="field-head">
+                  <label for="cameraPreset">机身方案</label>
+                  <span class="field-note">快速载入</span>
+                </div>
+                <div class="select-shell">
+                  <select id="cameraPreset"></select>
+                  <svg viewBox="0 0 10 6" aria-hidden="true">
+                    <path
+                      d="m1 1 4 4 4-4"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.2"
+                    />
+                  </svg>
+                </div>
+              </div>
+
+              <div class="field">
+                <div class="field-head">
+                  <label for="sensorSelect">传感器画幅</label>
+                  <span class="field-note" id="sensorInfo">9.6 × 7.2 mm</span>
+                </div>
+                <div class="select-shell">
+                  <select id="sensorSelect"></select>
+                  <svg viewBox="0 0 10 6" aria-hidden="true">
+                    <path
+                      d="m1 1 4 4 4-4"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.2"
+                    />
+                  </svg>
+                </div>
+              </div>
+
+              <div class="field">
+                <div class="field-head">
+                  <label for="focalRange">等效焦距</label>
+                  <output class="value-pill" for="focalRange"
+                    ><span id="focalValue">24</span><small>mm</small></output
+                  >
+                </div>
+                <input
+                  class="range"
+                  type="range"
+                  id="focalRange"
+                  min="10"
+                  max="200"
+                  step="1"
+                  value="24"
+                />
+                <div class="field-foot">
+                  <span>实际焦距 <b id="actualFocal">6.67</b> mm</span>
+                  <span>10 — 200 mm</span>
+                </div>
+              </div>
+
+              <div class="field">
+                <div class="field-head">
+                  <label for="apertureRange">光圈</label>
+                  <output class="value-pill" for="apertureRange"
+                    >f/<span id="apertureValue">1.7</span></output
+                  >
+                </div>
+                <input
+                  class="range"
+                  type="range"
+                  id="apertureRange"
+                  min="0"
+                  max="24"
+                  step="1"
+                  value="2"
+                />
+                <div class="field-foot">
+                  <span>通光孔径 <b id="pupilValue">3.92</b> mm</span>
+                  <span>f/1.4 — f/16</span>
+                </div>
+              </div>
+
+              <div class="field">
+                <div class="field-head">
+                  <label for="focusRange">对焦距离</label>
+                  <div class="focus-value-wrap">
+                    <output class="value-pill" for="focusRange"
+                      ><span id="focusValue">1.20</span><small>m</small></output
+                    >
+                    <button
+                      class="infinity-button"
+                      id="infinityBtn"
+                      type="button"
+                      aria-pressed="false"
+                      title="对焦到无穷远"
+                    >
+                      ∞
+                    </button>
+                  </div>
+                </div>
+                <input
+                  class="range"
+                  type="range"
+                  id="focusRange"
+                  min="0"
+                  max="1000"
+                  step="1"
+                  value="562"
+                />
+                <div class="field-foot">
+                  <span>0.08 m — 50 m</span>
+                  <span id="focusFoot">对焦平面 1.20 m</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel criterion-panel">
+              <div class="panel-head">
+                <div>
+                  <span class="panel-kicker">PERCEPTION</span>
+                  <h3>CoC 判定</h3>
+                </div>
+                <span class="panel-hint">允许弥散圆</span>
+              </div>
+
+              <div
+                class="segmented coc-modes"
+                role="tablist"
+                aria-label="CoC 判定标准"
+              >
+                <button
+                  type="button"
+                  role="tab"
+                  data-coc-mode="human"
+                  aria-selected="true"
+                  class="is-active"
+                >
+                  观看条件
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  data-coc-mode="classic"
+                  aria-selected="false"
+                >
+                  经典
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  data-coc-mode="pixel"
+                  aria-selected="false"
+                >
+                  像素级
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  data-coc-mode="custom"
+                  aria-selected="false"
+                >
+                  自定义
+                </button>
+              </div>
+
+              <div class="coc-summary">
+                <div class="coc-summary-value">
+                  <span id="cocValue">3.05</span><small>µm</small>
+                </div>
+                <p id="cocExplain">
+                  在 27″ 屏幕、60 cm 观看距离下，约 1′
+                  视角对应的传感器模糊直径。
+                </p>
+              </div>
+
+              <div class="coc-panel" data-coc-panel="human">
+                <div class="mini-field">
+                  <div class="mini-head">
+                    <label for="displayRange">屏幕对角线</label>
+                    <output id="displayValue">27″</output>
+                  </div>
+                  <input
+                    class="range compact"
+                    id="displayRange"
+                    type="range"
+                    min="10"
+                    max="85"
+                    step="1"
+                    value="27"
+                  />
+                </div>
+                <div class="mini-field">
+                  <div class="mini-head">
+                    <label for="viewRange">观看距离</label>
+                    <output id="viewValue">60 cm</output>
+                  </div>
+                  <input
+                    class="range compact"
+                    id="viewRange"
+                    type="range"
+                    min="20"
+                    max="150"
+                    step="5"
+                    value="60"
+                  />
+                </div>
+                <div class="mini-field">
+                  <div class="mini-head">
+                    <label for="acuityRange">视觉分辨力</label>
+                    <output id="acuityValue">1.0′</output>
+                  </div>
+                  <input
+                    class="range compact"
+                    id="acuityRange"
+                    type="range"
+                    min="0.5"
+                    max="3"
+                    step="0.1"
+                    value="1"
+                  />
+                </div>
+                <div class="mini-foot">
+                  <span>显示放大倍率</span>
+                  <b id="displayMagnification">57×</b>
+                </div>
+              </div>
+
+              <div class="coc-panel" data-coc-panel="classic" hidden>
+                <p class="coc-copy">
+                  摄影教材中的经典经验值：取画幅对角线
+                  <b>1/1500</b> 作为可接受模糊，不随屏幕和观看距离变化。
+                </p>
+                <div class="formula-inline">c = d<sub>sensor</sub> / 1500</div>
+              </div>
+
+              <div class="coc-panel" data-coc-panel="pixel" hidden>
+                <p class="coc-copy">
+                  以传感器像素为尺度。k 越大，判据越宽松；2 px
+                  是常见的“可分辨模糊”近似。
+                </p>
+                <div class="pixel-k-row">
+                  <span>k =</span>
+                  <div class="mini-segmented" role="group" aria-label="像素倍数">
+                    <button type="button" data-pixel-k="1">1 px</button>
+                    <button type="button" data-pixel-k="2" class="is-active">
+                      2 px
+                    </button>
+                    <button type="button" data-pixel-k="3">3 px</button>
+                  </div>
+                  <span class="pixel-k-readout" id="pixelKValue">2.35 µm</span>
+                </div>
+                <div class="formula-inline">c = k · p</div>
+              </div>
+
+              <div class="coc-panel" data-coc-panel="custom" hidden>
+                <div class="mini-field">
+                  <div class="mini-head">
+                    <label for="customCocInput">手工输入阈值</label>
+                    <span class="unit-suffix">µm</span>
+                  </div>
+                  <input
+                    class="number-input"
+                    id="customCocInput"
+                    type="number"
+                    min="0.2"
+                    max="200"
+                    step="0.1"
+                    value="8"
+                  />
+                </div>
+                <p class="coc-copy">
+                  适合对照旧版景深表或特定输出标准。改变阈值只会改变“可接受范围”，不会改变镜头的真实模糊。
+                </p>
+              </div>
+            </section>
+
+            <details class="panel advanced-panel">
+              <summary>
+                <span><span class="panel-kicker">SENSOR &amp; SAMPLING</span>传感器与采样</span>
+                <svg viewBox="0 0 12 12" aria-hidden="true">
+                  <path
+                    d="M2 4.5 6 8.5l4-4"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.2"
+                  />
+                </svg>
+              </summary>
+              <div class="advanced-body">
+                <div class="field compact-field">
+                  <div class="field-head">
+                    <label for="resolutionInput">有效像素</label>
+                    <span class="field-note"><b id="pixelPitchInfo">1.18</b> µm / px</span>
+                  </div>
+                  <div class="input-with-unit">
+                    <input
+                      class="number-input"
+                      id="resolutionInput"
+                      type="number"
+                      min="2"
+                      max="250"
+                      step="1"
+                      value="50"
+                    />
+                    <span>MP</span>
+                  </div>
+                </div>
+
+                <div class="field compact-field">
+                  <div class="field-head">
+                    <span class="field-label">自定义画幅尺寸</span>
+                    <span class="field-note">毫米</span>
+                  </div>
+                  <div class="dual-input">
+                    <label>
+                      <span>宽</span>
+                      <input
+                        class="number-input"
+                        id="sensorWidthInput"
+                        type="number"
+                        min="1"
+                        max="60"
+                        step="0.1"
+                        value="9.6"
+                      />
+                    </label>
+                    <span class="times">×</span>
+                    <label>
+                      <span>高</span>
+                      <input
+                        class="number-input"
+                        id="sensorHeightInput"
+                        type="number"
+                        min="1"
+                        max="60"
+                        step="0.1"
+                        value="7.2"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <p class="advanced-note">
+                  使用一阶薄透镜模型，忽略镜头像差、对焦呼吸与手机多帧合成。画幅和像素数决定实际焦距与单像素尺度。
+                </p>
+              </div>
+            </details>
+          </aside>
+
+          <div class="main-stack">
+            <div class="metrics-grid" aria-label="关键计算结果">
+              <article class="metric-card tone-lime">
+                <div class="metric-head">
+                  <span>允许 CoC</span><span class="metric-index">01</span>
+                </div>
+                <div class="metric-value">
+                  <span id="metricCoc">3.05</span><small>µm</small>
+                </div>
+                <p class="metric-sub" id="metricCocSub">≈ 1/3930 对角线 · 2.60 px</p>
+                <span class="metric-glow" aria-hidden="true"></span>
+              </article>
+
+              <article class="metric-card tone-cyan">
+                <div class="metric-head">
+                  <span>景深范围</span><span class="metric-index">02</span>
+                </div>
+                <div class="metric-value metric-range">
+                  <span id="metricDof">1.05 – 1.39</span><small>m</small>
+                </div>
+                <p class="metric-sub" id="metricDofSub">总景深 0.34 m</p>
+                <span class="metric-glow" aria-hidden="true"></span>
+              </article>
+
+              <article class="metric-card tone-amber">
+                <div class="metric-head">
+                  <span>远景弥散</span><span class="metric-index">03</span>
+                </div>
+                <div class="metric-value">
+                  <span id="metricBg">18.6</span><small id="metricBgUnit">µm</small>
+                </div>
+                <p class="metric-sub" id="metricBgSub">@ 8 m · 6.1× 阈值</p>
+                <span class="metric-glow" aria-hidden="true"></span>
+              </article>
+
+              <article class="metric-card tone-pink">
+                <div class="metric-head">
+                  <span>超焦距</span><span class="metric-index">04</span>
+                </div>
+                <div class="metric-value">
+                  <span id="metricH">8.57</span><small id="metricHUnit">m</small>
+                </div>
+                <p class="metric-sub" id="metricHSub">对焦 ≥ H 时，远界为 ∞</p>
+                <span class="metric-glow" aria-hidden="true"></span>
+              </article>
+            </div>
+
+            <section class="panel viewfinder-panel">
+              <div class="panel-head viewfinder-head">
+                <div>
+                  <span class="panel-kicker">DEPTH PREVIEW</span>
+                  <h3>三层景深取景模拟</h3>
+                </div>
+                <div class="viewfinder-actions">
+                  <span class="viewfinder-note">模糊按画面比例换算</span>
+                  <button
+                    class="toggle is-on"
+                    id="exagToggle"
+                    type="button"
+                    role="switch"
+                    aria-checked="true"
+                  >
+                    <span class="toggle-track" aria-hidden="true"><i></i></span>
+                    <span id="exagLabel">3× 视觉增强</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="viewfinder">
+                <canvas
+                  id="sceneCanvas"
+                  width="1400"
+                  height="500"
+                  role="img"
+                  aria-label="三层景深模拟画面"
+                ></canvas>
+                <div class="viewfinder-grid" aria-hidden="true"></div>
+                <div class="viewfinder-tag">
+                  <span></span>THREE-PLANE DEPTH SIM
+                </div>
+                <div class="viewfinder-crosshair" aria-hidden="true">
+                  <i></i><i></i>
+                </div>
+                <div class="layer-pills">
+                  <div class="layer-pill" data-layer-pill="fore">
+                    <span class="layer-dot"></span>
+                    <span class="layer-name">前景 <small>0.4 m</small></span>
+                    <b id="layerFore">43.9 µm</b>
+                  </div>
+                  <div class="layer-pill is-focus" data-layer-pill="subject">
+                    <span class="layer-dot"></span>
+                    <span class="layer-name">主体 <small>1.2 m</small></span>
+                    <b id="layerSubject">0.0 µm</b>
+                  </div>
+                  <div class="layer-pill" data-layer-pill="far">
+                    <span class="layer-dot"></span>
+                    <span class="layer-name">远景 <small>8 m</small></span>
+                    <b id="layerFar">18.6 µm</b>
+                  </div>
+                </div>
+              </div>
+              <p class="viewfinder-foot">
+                对焦在 <b id="viewFocusLabel">1.20 m</b>。画面中的前景叶片、主体花瓶和远景窗景固定在
+                0.4 / 1.2 / 8 m，参数变化时它们各自重新计算弥散直径。
+              </p>
+            </section>
+
+            <section class="panel ray-panel">
+              <div class="panel-head ray-head">
+                <div>
+                  <span class="panel-kicker">OPTICAL PATH</span>
+                  <h3>光路 · 景深 · 弥散圆</h3>
+                </div>
+                <div class="ray-legend" aria-hidden="true">
+                  <span><i class="ray-line focus"></i>对焦光线</span>
+                  <span><i class="ray-line near"></i>近点光线</span>
+                  <span><i class="ray-line far"></i>远点光线</span>
+                  <span class="ray-scale">焦深 / δ 视觉放大</span>
+                </div>
+              </div>
+              <div class="ray-scroll-hint" id="rayScrollHint">← 横向滑动查看完整光路 →</div>
+              <div class="ray-scroll" id="rayScroll">
+                <svg id="rayDiagram" role="img"></svg>
+              </div>
+              <p class="ray-foot">
+                从近点与远点出发的光线，在像方分别聚焦于传感器前后；在像面处形成的光斑直径就是允许
+                CoC δ。主图的焦深与光斑为便于观察的放大示意；右下角
+                <b>SENSOR SPOT</b> 另按独立比例显示 8 m 背景的实际光斑，它会随光圈、焦距与对焦距离变化。
+              </p>
+              <div class="ray-readout">
+                <div><span>允许 δ</span><b id="rayCoc">3.05 µm</b></div>
+                <div><span>前焦深</span><b id="rayFrontFocus">6.3 µm</b></div>
+                <div><span>后焦深</span><b id="rayBackFocus">12.5 µm</b></div>
+                <div><span>总焦深</span><b id="rayTotalFocus">18.8 µm</b></div>
+                <div><span>背景光斑 @8m</span><b id="rayBgCoc">18.6 µm</b></div>
+              </div>
+            </section>
+
+            <section class="panel calc-panel" id="calculation">
+              <div class="panel-head calc-head">
+                <div>
+                  <span class="panel-kicker">LIVE FORMULAS</span>
+                  <h3>当前参数的计算过程</h3>
+                </div>
+                <span class="panel-hint">实时代入 · 与图中数值同步</span>
+              </div>
+              <div class="calc-grid" id="calcGrid"></div>
+              <p class="calc-foot">
+                式中 f 为实际焦距，N 为光圈值，δ 为允许弥散圆，s
+                为对焦距离，D 为物距。长度计算内部统一换算为毫米，界面显示时再转换为
+                µm / mm / m。等效焦距按画幅对角线换算，衍射波长取 550 nm。
+              </p>
+            </section>
+
+            <section class="panel depth-panel">
+              <div class="panel-head">
+                <div>
+                  <span class="panel-kicker">DEPTH OF FIELD</span>
+                  <h3>景深标尺</h3>
+                </div>
+                <div class="depth-total">
+                  <span>总景深</span>
+                  <b id="depthTotal">0.34 m</b>
+                </div>
+              </div>
+              <div class="depth-svg-wrap">
+                <svg id="depthSvg" role="img"></svg>
+              </div>
+              <div class="depth-readout">
+                <div>
+                  <span>近界</span><b id="depthNear">1.05 m</b>
+                </div>
+                <div class="focus-readout">
+                  <span>对焦平面</span><b id="depthFocus">1.20 m</b>
+                </div>
+                <div>
+                  <span>远界</span><b id="depthFar">1.39 m</b>
+                </div>
+                <div>
+                  <span>超焦距 H</span><b id="depthH">8.57 m</b>
+                </div>
+              </div>
+            </section>
+
+            <div class="analysis-grid">
+              <section class="panel chart-panel">
+                <div class="panel-head chart-head">
+                  <div>
+                    <span class="panel-kicker">BLUR PROFILE</span>
+                    <h3>弥散圆 × 物距</h3>
+                  </div>
+                  <div class="chart-legend" aria-hidden="true">
+                    <span><i class="line-warm"></i>几何弥散</span>
+                    <span><i class="line-cyan"></i>允许 CoC</span>
+                    <span><i class="line-pink"></i>艾里斑</span>
+                  </div>
+                </div>
+                <div class="chart-wrap">
+                  <svg id="blurChart" role="img"></svg>
+                  <div class="chart-tooltip" id="chartTip" aria-hidden="true"></div>
+                </div>
+                <p class="chart-foot">
+                  纵轴为传感器上的弥散圆直径。曲线越靠下越清晰；两个绿色交点之间的区间就是景深。
+                </p>
+              </section>
+
+              <aside class="analysis-side">
+                <section class="panel circle-panel">
+                  <div class="panel-head compact-head">
+                    <div>
+                      <span class="panel-kicker">CIRCLE SCALE</span>
+                      <h3>尺度对照</h3>
+                    </div>
+                    <span class="panel-hint">同一比例</span>
+                  </div>
+                  <svg id="circleChart" role="img"></svg>
+                  <div class="circle-legend">
+                    <div>
+                      <i class="swatch lime"></i><span>允许 CoC</span>
+                      <b id="circleCoc">3.05 µm</b>
+                    </div>
+                    <div>
+                      <i class="swatch pink"></i><span>艾里斑</span>
+                      <b id="circleAiry">2.29 µm</b>
+                    </div>
+                    <div>
+                      <i class="swatch blue"></i><span>2 px 采样</span>
+                      <b id="circlePixel2">2.35 µm</b>
+                    </div>
+                    <div>
+                      <i class="swatch blue faint"></i><span>1 px</span>
+                      <b id="circlePixel1">1.18 µm</b>
+                    </div>
+                  </div>
+                </section>
+
+              </aside>
+            </div>
+
+            <section class="panel readout-panel readout-panel-wide">
+              <div class="panel-head compact-head">
+                <div>
+                  <span class="panel-kicker">READOUT</span>
+                  <h3>数值明细</h3>
+                </div>
+                <span class="panel-hint">SENSOR / LENS / SAMPLING</span>
+              </div>
+              <dl class="readout-list">
+                <div><dt>传感器对角线</dt><dd><span id="readoutSensor">12.00</span> mm</dd></div>
+                <div><dt>裁切系数</dt><dd><span id="readoutCrop">3.61</span>×</dd></div>
+                <div><dt>实际焦距</dt><dd><span id="readoutActualFocal">6.67</span> mm</dd></div>
+                <div><dt>通光孔径</dt><dd><span id="readoutPupil">3.92</span> mm</dd></div>
+                <div><dt>对焦放大率</dt><dd>1:<span id="readoutMag">179</span></dd></div>
+                <div><dt>水平视角</dt><dd><span id="readoutFov">71.5</span>°</dd></div>
+                <div><dt>单像素间距</dt><dd><span id="readoutPitch">1.18</span> µm</dd></div>
+                <div><dt>艾里斑 / 2 px</dt><dd><span id="readoutAiry">1.95</span> px</dd></div>
+              </dl>
+            </section>
+
+            <section class="insight-strip" aria-label="当前参数下的结论">
+              <article class="insight-card">
+                <span class="insight-index">01 / 判定</span>
+                <h3 id="insightJudgeTitle">严格，但不是绝对</h3>
+                <p id="insightJudgeText">
+                  在 27″ 屏、60 cm 处观看时，3.05 µm
+                  的模糊已接近人眼分辨极限。
+                </p>
+              </article>
+              <article class="insight-card">
+                <span class="insight-index">02 / 虚化</span>
+                <h3 id="insightBlurTitle">背景超过门槛</h3>
+                <p id="insightBlurText">
+                  8 m 处的弥散为 18.6 µm，是允许 CoC 的 6.1 倍，已经明显失焦。
+                </p>
+              </article>
+              <article class="insight-card">
+                <span class="insight-index">03 / 衍射</span>
+                <h3 id="insightDiffTitle">像素正在成为瓶颈</h3>
+                <p id="insightDiffText">
+                  艾里斑约 2.29 µm，相当于 1.95 个像素；继续收光圈不会无限变锐。
+                </p>
+              </article>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section class="effects-section page-width" id="effects">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">02 / SENSITIVITY</p>
+            <h2>一个变量，四种结果</h2>
+          </div>
+          <p class="section-note">
+            每张卡片只改变一个参数。注意区分：哪些数字改变的是真实光学模糊，哪些只是观看条件重新定义了“可接受”。
+          </p>
+        </div>
+        <div class="effects-grid" id="effectsGrid"></div>
+      </section>
+
+      <section class="theory-section page-width" id="theory">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">03 / MODEL</p>
+            <h2>公式，以及公式没有说的事</h2>
+          </div>
+          <p class="section-note">
+            实验台采用一阶薄透镜与几何光学近似。它不模拟手机的计算摄影，却能清楚展示 CoC
+            在景深与虚化之间扮演的两个角色。
+          </p>
+        </div>
+
+        <div class="theory-grid">
+          <article class="panel formula-card emphasis">
+            <span class="formula-index">01</span>
+            <h3>允许弥散圆</h3>
+            <div class="formula">c = 2D tan(θ/2) · d<sub>s</sub> / d<sub>d</sub></div>
+            <p>
+              人眼观看条件下，先把显示器上的可辨模糊换算回传感器：D
+              为观看距离，θ 为视角分辨力，d<sub>s</sub> / d<sub>d</sub>
+              为传感器与显示器的尺寸比。
+            </p>
+            <div class="formula-note">
+              经典规则：c = d<sub>sensor</sub> / 1500 ｜ 像素规则：c =
+              k · p
+            </div>
+          </article>
+
+          <article class="panel formula-card">
+            <span class="formula-index">02</span>
+            <h3>超焦距与景深</h3>
+            <div class="formula">H = f² / (Nc) + f</div>
+            <div class="formula secondary">
+              s<sub>near</sub> = s(H−f) / (H+s−2f)
+            </div>
+            <div class="formula secondary">
+              s<sub>far</sub> = s(H−f) / (H−s)
+            </div>
+            <p>
+              当对焦距离 s ≥ H 时，远界变为无穷远。允许 CoC
+              越小，超焦距越远，景深越窄。
+            </p>
+          </article>
+
+          <article class="panel formula-card">
+            <span class="formula-index">03</span>
+            <h3>真实弥散圆</h3>
+            <div class="formula">
+              c(D) = f² |D−s| / [N · D · (s−f)]
+            </div>
+            <p>
+              D 为物距，s 为对焦距离。它由镜头和拍摄设置决定，与屏幕大小、观看距离无关；这正是“实际模糊”和“允许
+              CoC”的分界线。
+            </p>
+            <div class="formula-note">
+              对焦 ∞ 时：c(D) ≈ f² / (N·D)
+            </div>
+          </article>
+
+          <article class="panel formula-card">
+            <span class="formula-index">04</span>
+            <h3>衍射斑</h3>
+            <div class="formula">Ø<sub>Airy</sub> = 2.44 λ N (1+m)</div>
+            <p>
+              小底手机像素极小，f/1.8 的艾里斑就可能覆盖约 2
+              个像素。收光圈会增加景深，但也会把衍射斑推过采样极限。
+            </p>
+            <div class="formula-note">
+              λ = 550 nm ｜ m = f / (s−f) ｜ 1 px ≈ 1.18 µm
+            </div>
+          </article>
+        </div>
+
+        <div class="assumption-panel">
+          <div class="assumption-mark" aria-hidden="true">!</div>
+          <div>
+            <h3>CoC 不是一个物理常数</h3>
+            <p>
+              它是“多大模糊仍然可接受”的约定。把照片放大到 100%、靠近屏幕观看，或者换一个更严格的判据，景深表会立刻改变，但照片里的真实光学模糊没有变。手机的计算摄影、多帧合成、镜头像差和算法虚化都在这套模型之外。
+            </p>
+          </div>
+          <div class="assumption-meta">
+            <span>THIN LENS</span>
+            <span>NO ABERRATION</span>
+            <span>550 nm</span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer page-width">
+      <div class="footer-brand">
+        <span class="brand-mark small" aria-hidden="true"
+          ><span></span><span></span><span></span
+        ></span>
+        <span>CoC / LAB</span>
+      </div>
+      <p>
+        手机光学实验台 · 一阶几何光学模型 · 数值用于教学与参数比较，不替代镜头实测。
+      </p>
+      <a href="#top">回到顶部 ↑</a>
+    </footer>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script type="module" src="./js/app.js"></script>
+  </body>
+</html>

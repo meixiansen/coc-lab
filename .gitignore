@@ -1,0 +1,5 @@
+node_modules/
+.screenshots/
+.chrome-cdp/
+.chrome-profile*/
+.DS_Store
