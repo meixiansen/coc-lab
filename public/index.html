@@ -693,7 +693,7 @@
                   <span><i class="ray-line focus"></i>对焦光线</span>
                   <span><i class="ray-line near"></i>近点光线</span>
                   <span><i class="ray-line far"></i>远点光线</span>
-                  <span class="ray-scale">焦深 / δ 视觉放大</span>
+                  <span class="ray-scale">光阑随 N 变化 · 焦深放大</span>
                 </div>
               </div>
               <div class="ray-scroll-hint" id="rayScrollHint">← 横向滑动查看完整光路 →</div>
@@ -701,9 +701,9 @@
                 <svg id="rayDiagram" role="img"></svg>
               </div>
               <p class="ray-foot">
-                从近点与远点出发的光线，在像方分别聚焦于传感器前后；在像面处形成的光斑直径就是允许
+                镜头玻璃本身不会变大变小；调节光圈时，变化的是内部光阑的<b>有效孔径（Ø = f / N）</b>，图中可以看到光阑开窗与光线锥角随之收放（开窗大小为视觉示意，实际数值见读数与公式）。从近点与远点出发的光线，在像方分别聚焦于传感器前后；在像面处形成的光斑直径就是允许
                 CoC δ。主图的焦深与光斑为便于观察的放大示意；右下角
-                <b>SENSOR SPOT</b> 另按独立比例显示 8 m 背景的实际光斑，它会随光圈、焦距与对焦距离变化。
+                <b>SENSOR SPOT</b> 另按独立比例显示 8 m 背景的实际光斑。
               </p>
               <div class="ray-readout">
                 <div><span>允许 δ</span><b id="rayCoc">3.05 µm</b></div>

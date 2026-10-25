@@ -777,7 +777,13 @@ export function drawRayDiagram(svg, calc) {
   const xSensor = width - 260;
   const yAxis = 216;
   const lensHalf = 107;
-  const apertureHalf = 84;
+  // The glass element keeps its physical size. What changes with f-number is
+  // the effective aperture (entrance pupil), drawn here as a variable iris.
+  const apertureHalf = clamp(
+    86 * Math.pow(1.7 / calc.aperture, 0.25),
+    46,
+    94,
+  );
   const vSensor = xSensor - xLens;
 
   const nearM = calc.nearMm / 1000;
@@ -825,7 +831,7 @@ export function drawRayDiagram(svg, calc) {
     0,
     1,
   );
-  const cocRadius = 5 + cocNorm * 20;
+  const cocRadius = 5 + cocNorm * 17;
   const farRadius = farFinite
     ? cocRadius
     : Math.max(
@@ -985,24 +991,71 @@ export function drawRayDiagram(svg, calc) {
       'stroke-width': 1,
     }),
   );
-  // Aperture limits
+
+  // Iris / effective aperture. The outer glass silhouette is deliberately
+  // fixed; only the clear opening and the ray bundle change with f-number.
+  const irisClip = svgEl('clipPath', { id: 'lensApertureClip' });
+  irisClip.append(svgEl('path', { d: lensPath }));
+  defs.append(irisClip);
+  svg.append(
+    svgEl('g', {
+      'clip-path': 'url(#lensApertureClip)',
+    }),
+  );
+  const irisGroup = svg.lastElementChild;
+  irisGroup.append(
+    svgEl('rect', {
+      x: xLens - 32,
+      y: yAxis - lensHalf,
+      width: 64,
+      height: lensHalf - apertureHalf,
+      fill: 'rgba(4,10,11,.82)',
+    }),
+    svgEl('rect', {
+      x: xLens - 32,
+      y: yAxis + apertureHalf,
+      width: 64,
+      height: lensHalf - apertureHalf,
+      fill: 'rgba(4,10,11,.82)',
+    }),
+    svgEl('line', {
+      x1: xLens,
+      x2: xLens,
+      y1: yAxis - apertureHalf,
+      y2: yAxis + apertureHalf,
+      stroke: 'rgba(183,243,107,.3)',
+      'stroke-width': 1,
+      'stroke-dasharray': '2 4',
+    }),
+  );
   for (const sign of [-1, 1]) {
     svg.append(
       svgEl('line', {
-        x1: xLens - 7,
-        x2: xLens + 7,
+        x1: xLens - 21,
+        x2: xLens + 21,
         y1: yAxis + sign * apertureHalf,
         y2: yAxis + sign * apertureHalf,
-        stroke: 'rgba(230,255,236,.5)',
-        'stroke-width': 1,
+        stroke: 'rgba(230,255,236,.72)',
+        'stroke-width': 1.4,
       }),
     );
   }
-  rayText(svg, xLens, 104, `f ${calc.focalMm.toFixed(2)} mm · N ${calc.aperture}`, {
+  rayText(svg, xLens, 94, `f ${calc.focalMm.toFixed(2)} mm · N ${calc.aperture}`, {
     fill: '#c0cfc3',
-    size: 8.7,
+    size: 8.5,
     opacity: 1,
   });
+  rayText(
+    svg,
+    xLens,
+    106,
+    `有效孔径 Ø ${calc.apertureDiameterMm.toFixed(2)} mm`,
+    {
+      fill: '#9aab9f',
+      size: 7.8,
+      opacity: 1,
+    },
+  );
 
   // Object-side ray bundles
   const objectRay = (xObject, color, opacity) => {
@@ -1362,7 +1415,7 @@ export function drawRayDiagram(svg, calc) {
 
   svg.setAttribute(
     'aria-label',
-    `光路示意：近点 ${formatLengthMeters(nearM)}，对焦距离 ${calc.focusInfinity ? '无穷远' : formatLengthMeters(focusM)}，远点 ${farFinite ? formatLengthMeters(farM) : '无穷远'}。允许弥散圆 ${formatMicro(calc.cocThresholdUm)}，8 米背景弥散 ${formatMicro(calc.backgroundBlurUm)}。`,
+    `光路示意：${calc.aperture} 光圈，有效孔径 ${calc.apertureDiameterMm.toFixed(2)} 毫米。近点 ${formatLengthMeters(nearM)}，对焦距离 ${calc.focusInfinity ? '无穷远' : formatLengthMeters(focusM)}，远点 ${farFinite ? formatLengthMeters(farM) : '无穷远'}。允许弥散圆 ${formatMicro(calc.cocThresholdUm)}，8 米背景弥散 ${formatMicro(calc.backgroundBlurUm)}。`,
   );
 }
 
