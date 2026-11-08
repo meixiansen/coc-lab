@@ -3,9 +3,10 @@ import assert from 'node:assert/strict';
 
 import {
   APERTURES,
+  CAMERA_PRESETS,
   DEFAULT_STATE,
-  FF_DIAGONAL_MM,
   SENSORS,
+  FF_DIAGONAL_MM,
   computeAll,
   formatAperture,
   getActualFocalMm,
@@ -207,4 +208,31 @@ test('aperture helpers snap and format common values', () => {
   assert.equal(formatAperture(1.7), '1.7');
   assert.equal(formatAperture(1.75), '1.75');
   assert.equal(formatAperture(4), '4');
+});
+
+test('HUAWEI Mate 90 Pro main-camera preset carries the documented parameters', () => {
+  const preset = CAMERA_PRESETS.find((item) => item.id === 'mate-90-pro-main');
+  assert.ok(preset);
+  assert.equal(preset.sensor, '1-1.28');
+  assert.equal(preset.equivFocal, 24);
+  assert.equal(preset.aperture, 1.4);
+  assert.equal(preset.megapixels, 50);
+
+  const sensorPreset = SENSORS[preset.sensor];
+  const calc = computeAll(
+    baseState({
+      sensorKey: preset.sensor,
+      sensorWidth: sensorPreset.width,
+      sensorHeight: sensorPreset.height,
+      equivFocal: preset.equivFocal,
+      aperture: preset.aperture,
+      megapixels: preset.megapixels,
+    }),
+  );
+  close(
+    calc.sensor.crop,
+    43.2666 / Math.hypot(sensorPreset.width, sensorPreset.height),
+    1e-3,
+  );
+  assert.ok(calc.apertureDiameterMm > 4.5 && calc.apertureDiameterMm < 5.2);
 });

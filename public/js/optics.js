@@ -66,6 +66,17 @@ export const SENSORS = {
 
 export const CAMERA_PRESETS = [
   {
+    // HUAWEI Mate 90 Pro main camera: official 24 mm equivalent,
+    // 50 MP RYYB, F1.4-F4.0 continuous variable aperture, 1/1.28" sensor.
+    id: 'mate-90-pro-main',
+    name: '华为 Mate 90 Pro · 主摄',
+    meta: '24 mm · f/1.4–4.0 · 1/1.28″ · 50 MP',
+    sensor: '1-1.28',
+    equivFocal: 24,
+    aperture: 1.4,
+    megapixels: 50,
+  },
+  {
     id: 'one-inch',
     name: '1″ 大底主摄',
     meta: '23 mm · f/1.75 · 50 MP',
