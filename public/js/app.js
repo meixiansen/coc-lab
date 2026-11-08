@@ -1256,6 +1256,7 @@ function observeResize() {
 
 function init() {
   buildSelects();
+  refs.apertureRange.max = String(APERTURES.length - 1);
   syncControls();
   bindEvents();
   observeResize();

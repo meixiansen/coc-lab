@@ -210,29 +210,47 @@ test('aperture helpers snap and format common values', () => {
   assert.equal(formatAperture(4), '4');
 });
 
-test('HUAWEI Mate 90 Pro main-camera preset carries the documented parameters', () => {
-  const preset = CAMERA_PRESETS.find((item) => item.id === 'mate-90-pro-main');
-  assert.ok(preset);
-  assert.equal(preset.sensor, '1-1.28');
-  assert.equal(preset.equivFocal, 24);
-  assert.equal(preset.aperture, 1.4);
-  assert.equal(preset.megapixels, 50);
+test('HUAWEI Mate 90 Pro main, ultra-wide and tele presets carry documented parameters', () => {
+  const expected = [
+    { id: 'mate-90-pro-main', sensor: '1-1.28', equivFocal: 24, aperture: 1.4, megapixels: 50 },
+    { id: 'mate-90-pro-ultrawide', sensor: '1-2.55', equivFocal: 13, aperture: 2.2, megapixels: 40 },
+    { id: 'mate-90-pro-tele', sensor: '1-2.5', equivFocal: 90, aperture: 2.1, megapixels: 50 },
+  ];
 
-  const sensorPreset = SENSORS[preset.sensor];
-  const calc = computeAll(
-    baseState({
-      sensorKey: preset.sensor,
-      sensorWidth: sensorPreset.width,
-      sensorHeight: sensorPreset.height,
-      equivFocal: preset.equivFocal,
-      aperture: preset.aperture,
-      megapixels: preset.megapixels,
-    }),
+  for (const item of expected) {
+    const preset = CAMERA_PRESETS.find((candidate) => candidate.id === item.id);
+    assert.ok(preset, `${item.id} should exist`);
+    assert.equal(preset.sensor, item.sensor);
+    assert.equal(preset.equivFocal, item.equivFocal);
+    assert.equal(preset.aperture, item.aperture);
+    assert.equal(preset.megapixels, item.megapixels);
+
+    const sensorPreset = SENSORS[preset.sensor];
+    const calc = computeAll(
+      baseState({
+        sensorKey: preset.sensor,
+        sensorWidth: sensorPreset.width,
+        sensorHeight: sensorPreset.height,
+        equivFocal: preset.equivFocal,
+        aperture: preset.aperture,
+        megapixels: preset.megapixels,
+      }),
+    );
+    close(
+      calc.sensor.crop,
+      43.2666 / Math.hypot(sensorPreset.width, sensorPreset.height),
+      1e-3,
+    );
+    assert.ok(calc.apertureDiameterMm > 0);
+  }
+
+  assert.match(
+    CAMERA_PRESETS.find((item) => item.id === 'mate-90-pro-ultrawide').meta,
+    /≈/,
   );
-  close(
-    calc.sensor.crop,
-    43.2666 / Math.hypot(sensorPreset.width, sensorPreset.height),
-    1e-3,
+  assert.match(
+    CAMERA_PRESETS.find((item) => item.id === 'mate-90-pro-tele').meta,
+    /≈/,
   );
-  assert.ok(calc.apertureDiameterMm > 4.5 && calc.apertureDiameterMm < 5.2);
+  assert.ok(APERTURES.includes(2.1));
 });

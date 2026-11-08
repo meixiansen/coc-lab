@@ -48,6 +48,13 @@ export const SENSORS = {
     height: 4.2,
     note: '超广角',
   },
+  '1-2.5': {
+    name: '1/2.5″',
+    short: '1/2.5″',
+    width: 5.76,
+    height: 4.32,
+    note: '长焦（估算尺寸）',
+  },
   '1-3.06': {
     name: '1/3.06″',
     short: '1/3.06″',
@@ -74,6 +81,28 @@ export const CAMERA_PRESETS = [
     sensor: '1-1.28',
     equivFocal: 24,
     aperture: 1.4,
+    megapixels: 50,
+  },
+  {
+    // Official: 13 mm equivalent, 40 MP, f/2.2. Huawei does not publish the
+    // ultra-wide sensor size; 1/2.55" is used as a clearly marked estimate.
+    id: 'mate-90-pro-ultrawide',
+    name: '华为 Mate 90 Pro · 超广角',
+    meta: '13 mm · f/2.2 · ≈1/2.55″ · 40 MP',
+    sensor: '1-2.55',
+    equivFocal: 13,
+    aperture: 2.2,
+    megapixels: 40,
+  },
+  {
+    // Official: 90 mm equivalent, 50 MP, f/2.1. The sensor size is not
+    // published; 1/2.5" is a clearly marked estimate for the simulator.
+    id: 'mate-90-pro-tele',
+    name: '华为 Mate 90 Pro · 长焦',
+    meta: '90 mm · f/2.1 · ≈1/2.5″ · 50 MP',
+    sensor: '1-2.5',
+    equivFocal: 90,
+    aperture: 2.1,
     megapixels: 50,
   },
   {
@@ -134,8 +163,8 @@ export const CAMERA_PRESETS = [
 
 // A fine set of common photographic stops, including the fractions used by phones.
 export const APERTURES = [
-  1.4, 1.6, 1.7, 1.75, 1.8, 2, 2.2, 2.4, 2.5, 2.8, 3.2, 3.5, 4, 4.5, 5, 5.6,
-  6.3, 7.1, 8, 9, 10, 11, 13, 14, 16,
+  1.4, 1.6, 1.7, 1.75, 1.8, 2, 2.1, 2.2, 2.4, 2.5, 2.8, 3.2, 3.5, 4, 4.5, 5,
+  5.6, 6.3, 7.1, 8, 9, 10, 11, 13, 14, 16,
 ];
 
 export const LAYERS = [
