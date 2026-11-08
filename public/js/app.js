@@ -101,6 +101,12 @@ const refs = {
   rayDiagram: $('#rayDiagram'),
   rayScroll: $('#rayScroll'),
   rayScrollHint: $('#rayScrollHint'),
+  rayFormulaCoc: $('#rayFormulaCoc'),
+  rayFormulaBlur: $('#rayFormulaBlur'),
+  rayCocFormula: $('#rayCocFormula'),
+  rayActualFormula: $('#rayActualFormula'),
+  rayCocFormulaNote: $('#rayCocFormulaNote'),
+  rayActualFormulaNote: $('#rayActualFormulaNote'),
   rayCoc: $('#rayCoc'),
   rayFrontFocus: $('#rayFrontFocus'),
   rayBackFocus: $('#rayBackFocus'),
@@ -603,6 +609,38 @@ function formatPreviewBlur(um) {
   return formatMicro(um);
 }
 
+function renderRayFormula(calc) {
+  const mode = calc.state.cocMode;
+  let formula = '';
+  let note = '';
+
+  if (mode === 'human') {
+    formula =
+      'δ = 2D·tan(θ/2) · d<sub>sensor</sub> / d<sub>display</sub>';
+    note = `${calc.state.displayInches}″ 屏 · ${calc.state.viewingDistanceCm} cm 观看 · ${calc.state.acuityArcmin.toFixed(1)}′`;
+  } else if (mode === 'classic') {
+    formula = 'δ = d<sub>sensor</sub> / 1500';
+    note = '经典 1/1500 对角线经验值';
+  } else if (mode === 'pixel') {
+    formula = 'δ = k · p';
+    note = `k = ${calc.state.pixelK} · p = ${(calc.pixelPitchMm * 1000).toFixed(2)} µm`;
+  } else {
+    formula = 'δ = δ<sub>input</sub>';
+    note = `手动画定 ${calc.state.customCocUm.toFixed(1)} µm`;
+  }
+
+  const actualFormula = calc.focusInfinity
+    ? 'c(D) = f² / (N·D)'
+    : 'c(D) = f²·|D−s| / [N·D·(s−f)]';
+
+  refs.rayCocFormula.innerHTML = formula;
+  refs.rayActualFormula.innerHTML = actualFormula;
+  refs.rayCocFormulaNote.textContent = note;
+  refs.rayActualFormulaNote.textContent = `f 实际 ${calc.focalMm.toFixed(2)} mm · N ${calc.aperture} · 背景 D = ${calc.backgroundDistance.toFixed(1)} m`;
+  refs.rayFormulaCoc.textContent = formatMicro(calc.cocThresholdUm);
+  refs.rayFormulaBlur.textContent = formatMicro(calc.backgroundBlurUm);
+}
+
 function renderRayReadout(calc) {
   refs.rayCoc.textContent = formatMicro(calc.cocThresholdUm);
   refs.rayFrontFocus.textContent = formatMicro(calc.frontFocusUm);
@@ -1022,6 +1060,7 @@ function render() {
   renderControlReadouts(calc);
   renderMetrics(calc);
   renderPreview(calc);
+  renderRayFormula(calc);
   renderRayReadout(calc);
   renderDepth(calc);
   renderReadouts(calc);

@@ -1803,6 +1803,86 @@ svg {
   max-width: none;
 }
 
+.ray-formula-strip {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  margin-top: 12px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(5, 11, 12, 0.45);
+}
+
+.ray-formula-cell {
+  min-width: 0;
+  padding: 10px 13px 9px;
+}
+
+.ray-formula-cell + .ray-formula-cell {
+  border-left: 1px solid var(--line);
+}
+
+.ray-formula-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.ray-formula-head span {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.04em;
+  color: var(--dim);
+  white-space: nowrap;
+}
+
+.ray-formula-head b {
+  font-family: var(--font-numeric);
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--lime);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ray-formula-cell:last-child .ray-formula-head b {
+  color: var(--amber);
+}
+
+.ray-formula-exp {
+  display: block;
+  margin-top: 7px;
+  color: #d4e6c1;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.ray-formula-cell:last-child .ray-formula-exp {
+  color: #e6c7a8;
+}
+
+.ray-formula-exp sub {
+  font-size: 0.7em;
+}
+
+.ray-formula-note {
+  display: block;
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--dim);
+  font-family: var(--font-mono);
+  font-size: 7.5px;
+  line-height: 1.5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .ray-foot {
   margin: 9px 2px 0;
   color: var(--dim);
@@ -3088,6 +3168,15 @@ svg {
 
   .calc-card {
     min-height: 0;
+  }
+
+  .ray-formula-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .ray-formula-cell + .ray-formula-cell {
+    border-top: 1px solid var(--line);
+    border-left: 0;
   }
 
   .ray-readout {
