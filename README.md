@@ -36,6 +36,10 @@ $env:PORT=8080; $env:HOST='0.0.0.0'; npm start
 
 - [CoC 零基础学习指南](docs/CoC-零基础学习指南.md)：从生活比喻、术语表、参数效应到公式代入的完整入门文档，适合第一次接触景深和弥散圆的人。
 
+## 演示文稿
+
+- [CoC Lab 手机光学实验台 PPT](docs/CoC-Lab-手机光学实验台.pptx)：12 页中文演示文稿，包含光路、公式、参数实验、华为 Mate 90 Pro 三摄案例和网页实机展示。
+
 ## 测试
 
 ```bash
@@ -57,6 +61,7 @@ public/
 tests/optics.test.mjs 光学模型单元测试
 docs/
   CoC-零基础学习指南.md  面向初学者的 CoC / 景深学习文档
+  CoC-Lab-手机光学实验台.pptx  12 页中文演示文稿
 server.mjs            零依赖静态服务器
 ```
 
