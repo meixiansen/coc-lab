@@ -2754,6 +2754,43 @@ svg {
   color: #b3c6b3;
 }
 
+/* KaTeX math typesetting */
+.math-formula {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #2b3b3d transparent;
+}
+
+.math-formula .katex {
+  color: inherit;
+}
+
+.math-formula .katex-display {
+  margin: 0.12em 0;
+  text-align: left;
+}
+
+.math-formula .katex-display > .katex {
+  text-align: left;
+}
+
+.ray-formula-exp .katex-display {
+  margin: 0.06em 0;
+}
+
+.calc-formula .katex-display {
+  margin: 0.04em 0;
+}
+
+.formula .katex-display {
+  margin: 0.12em 0;
+}
+
+.formula-inline .katex {
+  font-size: 1.06em;
+}
+
 .formula sub {
   font-size: 0.68em;
 }

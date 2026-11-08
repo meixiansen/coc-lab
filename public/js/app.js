@@ -25,6 +25,43 @@ import {
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 
+function escapeHtmlAttribute(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('"', '&quot;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;');
+}
+
+function renderMath(element, tex, fallback, displayMode = true) {
+  if (!element) return;
+  if (window.katex && typeof window.katex.render === 'function') {
+    try {
+      window.katex.render(tex, element, {
+        displayMode,
+        throwOnError: false,
+        strict: false,
+        output: 'htmlAndMathml',
+      });
+      return;
+    } catch {
+      // Fall through to the readable plain-text fallback.
+    }
+  }
+  element.textContent = fallback || tex;
+}
+
+function renderStaticMath(root = document) {
+  $$('[data-tex]', root).forEach((element) => {
+    renderMath(
+      element,
+      element.dataset.tex,
+      element.dataset.fallback,
+      element.dataset.display !== 'inline',
+    );
+  });
+}
+
 const SCENES = {
   portrait: {
     equivFocal: 50,
@@ -611,30 +648,38 @@ function formatPreviewBlur(um) {
 
 function renderRayFormula(calc) {
   const mode = calc.state.cocMode;
-  let formula = '';
+  let tex = '';
+  let fallback = '';
   let note = '';
 
   if (mode === 'human') {
-    formula =
-      'δ = 2D·tan(θ/2) · d<sub>sensor</sub> / d<sub>display</sub>';
+    tex =
+      '\\delta = 2D\\tan\\!\\left(\\frac{\\theta}{2}\\right)\\frac{d_{\\mathrm{sensor}}}{d_{\\mathrm{display}}}';
+    fallback = 'δ = 2D·tan(θ/2) · d_sensor / d_display';
     note = `${calc.state.displayInches}″ 屏 · ${calc.state.viewingDistanceCm} cm 观看 · ${calc.state.acuityArcmin.toFixed(1)}′`;
   } else if (mode === 'classic') {
-    formula = 'δ = d<sub>sensor</sub> / 1500';
+    tex = '\\delta = \\frac{d_{\\mathrm{sensor}}}{1500}';
+    fallback = 'δ = d_sensor / 1500';
     note = '经典 1/1500 对角线经验值';
   } else if (mode === 'pixel') {
-    formula = 'δ = k · p';
+    tex = '\\delta = k \\cdot p';
+    fallback = 'δ = k · p';
     note = `k = ${calc.state.pixelK} · p = ${(calc.pixelPitchMm * 1000).toFixed(2)} µm`;
   } else {
-    formula = 'δ = δ<sub>input</sub>';
+    tex = '\\delta = \\delta_{\\mathrm{input}}';
+    fallback = 'δ = δ_input';
     note = `手动画定 ${calc.state.customCocUm.toFixed(1)} µm`;
   }
 
-  const actualFormula = calc.focusInfinity
+  const actualTex = calc.focusInfinity
+    ? 'c(D) = \\frac{f^2}{N\\,D}'
+    : 'c(D) = \\frac{f^2\\,|D-s|}{N\\,D\\,(s-f)}';
+  const actualFallback = calc.focusInfinity
     ? 'c(D) = f² / (N·D)'
     : 'c(D) = f²·|D−s| / [N·D·(s−f)]';
 
-  refs.rayCocFormula.innerHTML = formula;
-  refs.rayActualFormula.innerHTML = actualFormula;
+  renderMath(refs.rayCocFormula, tex, fallback, true);
+  renderMath(refs.rayActualFormula, actualTex, actualFallback, true);
   refs.rayCocFormulaNote.textContent = note;
   refs.rayActualFormulaNote.textContent = `f 实际 ${calc.focalMm.toFixed(2)} mm · N ${calc.aperture} · 背景 D = ${calc.backgroundDistance.toFixed(1)} m`;
   refs.rayFormulaCoc.textContent = formatMicro(calc.cocThresholdUm);
@@ -649,11 +694,23 @@ function renderRayReadout(calc) {
   refs.rayBgCoc.textContent = formatMicro(calc.backgroundBlurUm);
 }
 
-function calcFormulaCard(index, title, formula, substitution, result, note = '') {
+function calcFormulaCard(
+  index,
+  title,
+  formulaTex,
+  formulaFallback,
+  substitution,
+  result,
+  note = '',
+) {
   return `
     <article class="calc-card">
       <div class="calc-card-head"><span>${index}</span><h4>${title}</h4></div>
-      <div class="calc-formula">${formula}</div>
+      <div
+        class="calc-formula math-formula"
+        data-tex="${escapeHtmlAttribute(formulaTex)}"
+        data-fallback="${escapeHtmlAttribute(formulaFallback)}"
+      >${formulaFallback}</div>
       <div class="calc-sub">${substitution}</div>
       <div class="calc-result"><span>${note}</span><b>${result}</b></div>
     </article>`;
@@ -673,32 +730,40 @@ function renderCalculations(calc) {
   const aperture = calc.aperture;
   const cocMm = calc.cocThresholdMm;
 
-  let cocFormula = '';
+  let cocTex = '';
+  let cocFallback = '';
   let cocSubstitution = '';
   let cocNote = '';
 
   if (stateMode === 'human') {
-    cocFormula =
-      'δ = 2D·tan(θ/2) · d<sub>sensor</sub> / d<sub>display</sub>';
+    cocTex =
+      '\\delta = 2D\\tan\\!\\left(\\frac{\\theta}{2}\\right)\\frac{d_{\\mathrm{sensor}}}{d_{\\mathrm{display}}}';
+    cocFallback = 'δ = 2D·tan(θ/2) · d_sensor / d_display';
     cocSubstitution = `2 × ${viewing.toFixed(0)} × tan(${calc.state.acuityArcmin.toFixed(1)}′/2) × ${diag.toFixed(2)} / ${displayDiag.toFixed(2)}`;
     cocNote = `${calc.state.displayInches}″ 屏 · ${calc.state.viewingDistanceCm} cm 观看`;
   } else if (stateMode === 'classic') {
-    cocFormula = 'δ = d<sub>sensor</sub> / 1500';
+    cocTex = '\\delta = \\frac{d_{\\mathrm{sensor}}}{1500}';
+    cocFallback = 'δ = d_sensor / 1500';
     cocSubstitution = `${diag.toFixed(2)} / 1500 = ${cocMm.toFixed(5)} mm`;
     cocNote = '经典 1/1500 对角线';
   } else if (stateMode === 'pixel') {
-    cocFormula = 'δ = k · p';
+    cocTex = '\\delta = k \\cdot p';
+    cocFallback = 'δ = k · p';
     cocSubstitution = `${calc.state.pixelK} × ${(calc.pixelPitchMm * 1000).toFixed(2)} µm = ${calc.cocThresholdUm.toFixed(2)} µm`;
     cocNote = `${calc.state.pixelK} 像素直径`;
   } else {
-    cocFormula = 'δ = δ<sub>input</sub>';
+    cocTex = '\\delta = \\delta_{\\mathrm{input}}';
+    cocFallback = 'δ = δ_input';
     cocSubstitution = `${calc.state.customCocUm.toFixed(1)} µm（手动画定）`;
     cocNote = '自定义阈值';
   }
 
-  const backgroundFormula = calc.focusInfinity
-    ? 'δ(D) = f² / (N·D)'
-    : 'δ(D) = f²·|D−s| / [N·D·(s−f)]';
+  const backgroundTex = calc.focusInfinity
+    ? 'c(D) = \\frac{f^2}{N\\,D}'
+    : 'c(D) = \\frac{f^2\\,|D-s|}{N\\,D\\,(s-f)}';
+  const backgroundFallback = calc.focusInfinity
+    ? 'c(D) = f² / (N·D)'
+    : 'c(D) = f²·|D−s| / [N·D·(s−f)]';
   const backgroundSubstitution = calc.focusInfinity
     ? `${calc.focalMm.toFixed(2)}² / (${aperture} × ${backgroundMm.toFixed(0)}) = ${(calc.backgroundBlurMm).toFixed(5)} mm`
     : `${calc.focalMm.toFixed(2)}² × |${backgroundMm.toFixed(0)}−${sMm.toFixed(0)}| / (${aperture} × ${backgroundMm.toFixed(0)} × ${(sMm - calc.focalMm).toFixed(2)}) = ${(calc.backgroundBlurMm).toFixed(5)} mm`;
@@ -711,7 +776,8 @@ function renderCalculations(calc) {
     calcFormulaCard(
       '01',
       '允许弥散圆',
-      cocFormula,
+      cocTex,
+      cocFallback,
       cocSubstitution,
       formatMicro(calc.cocThresholdUm),
       cocNote,
@@ -719,7 +785,8 @@ function renderCalculations(calc) {
     calcFormulaCard(
       '02',
       '实际焦距与孔径',
-      'f = f<sub>eq</sub> · d<sub>sensor</sub> / 43.27<br />Ø = f / N',
+      '\\begin{aligned} f &= f_{\\mathrm{eq}}\\frac{d_{\\mathrm{sensor}}}{43.27} \\\\[2pt] \\varnothing &= \\frac{f}{N} \\end{aligned}',
+      'f = f_eq · d_sensor / 43.27；Ø = f / N',
       `${calc.equivFocal.toFixed(0)} × ${diag.toFixed(2)} / 43.27 = ${calc.focalMm.toFixed(2)} mm<br />${calc.focalMm.toFixed(2)} / ${aperture} = ${calc.apertureDiameterMm.toFixed(2)} mm`,
       `${calc.focalMm.toFixed(2)} mm <small>· Ø ${calc.apertureDiameterMm.toFixed(2)} mm</small>`,
       '等效焦距换算',
@@ -727,7 +794,8 @@ function renderCalculations(calc) {
     calcFormulaCard(
       '03',
       '超焦距',
-      'H = f² / (N·δ) + f',
+      'H = \\frac{f^2}{N\\delta} + f',
+      'H = f² / (Nδ) + f',
       hyperfocalSub,
       formatLengthMeters(calc.hyperfocalMm / 1000),
       '对焦 ≥ H 时远界 ∞',
@@ -735,7 +803,8 @@ function renderCalculations(calc) {
     calcFormulaCard(
       '04',
       '景深边界',
-      's<sub>near</sub> = s(H−f) / (H+s−2f)<br />s<sub>far</sub> = s(H−f) / (H−s)',
+      '\\begin{aligned} s_{\\mathrm{near}} &= \\frac{s(H-f)}{H+s-2f} \\\\[2pt] s_{\\mathrm{far}} &= \\frac{s(H-f)}{H-s} \\end{aligned}',
+      's_near = s(H−f)/(H+s−2f)；s_far = s(H−f)/(H−s)',
       dofSubstitution,
       `${trimMeters(calc.nearMm / 1000)} – ${trimMeters(calc.farMm / 1000)} <small>m</small>`,
       '近界 — 远界',
@@ -743,7 +812,8 @@ function renderCalculations(calc) {
     calcFormulaCard(
       '05',
       '实际弥散圆',
-      backgroundFormula,
+      backgroundTex,
+      backgroundFallback,
       backgroundSubstitution,
       formatMicro(calc.backgroundBlurUm),
       `@ ${calc.backgroundDistance.toFixed(1)} m · ${calc.backgroundRatio.toFixed(1)}× 阈值`,
@@ -751,7 +821,8 @@ function renderCalculations(calc) {
     calcFormulaCard(
       '06',
       '衍射斑',
-      'Ø<sub>Airy</sub> = 2.44·λ·N·(1+m)',
+      '\\varnothing_{\\mathrm{Airy}} = 2.44\\,\\lambda N\\,(1+m)',
+      'Ø_Airy = 2.44 λ N (1+m)',
       `2.44 × 550 nm × ${aperture} × (1 + ${calc.focusMagnification.toFixed(5)})`,
       formatMicro(calc.airyUm),
       `${calc.airyPixels.toFixed(2)} px · f/${calc.diffractionLimitN.toFixed(1)} 后 > 2 px`,
@@ -759,6 +830,7 @@ function renderCalculations(calc) {
   ];
 
   refs.calcGrid.innerHTML = cards.join('');
+  renderStaticMath(refs.calcGrid);
 }
 
 function renderInsights(calc) {
@@ -1299,6 +1371,7 @@ function init() {
   syncControls();
   bindEvents();
   observeResize();
+  renderStaticMath();
   render();
   window.setTimeout(() => updateUrlNow(), 200);
 }

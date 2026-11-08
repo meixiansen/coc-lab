@@ -10,6 +10,7 @@
     <meta name="theme-color" content="#080d0f" />
     <title>CoC Lab — 手机弥散圆与景深实验台</title>
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./vendor/katex/katex.min.css" />
     <link rel="stylesheet" href="./css/styles.css" />
   </head>
   <body>
@@ -459,7 +460,12 @@
                   摄影教材中的经典经验值：取画幅对角线
                   <b>1/1500</b> 作为可接受模糊，不随屏幕和观看距离变化。
                 </p>
-                <div class="formula-inline">c = d<sub>sensor</sub> / 1500</div>
+                <div
+                  class="formula-inline math-formula"
+                  data-display="inline"
+                  data-tex="\delta = \frac{d_{\mathrm{sensor}}}{1500}"
+                  data-fallback="δ = d_sensor / 1500"
+                >δ = d<sub>sensor</sub> / 1500</div>
               </div>
 
               <div class="coc-panel" data-coc-panel="pixel" hidden>
@@ -478,7 +484,12 @@
                   </div>
                   <span class="pixel-k-readout" id="pixelKValue">2.35 µm</span>
                 </div>
-                <div class="formula-inline">c = k · p</div>
+                <div
+                  class="formula-inline math-formula"
+                  data-display="inline"
+                  data-tex="\delta = k \cdot p"
+                  data-fallback="δ = k · p"
+                >δ = k · p</div>
               </div>
 
               <div class="coc-panel" data-coc-panel="custom" hidden>
@@ -702,8 +713,8 @@
                     <span>允许弥散圆 δ</span>
                     <b id="rayFormulaCoc">3.05 µm</b>
                   </div>
-                  <code class="ray-formula-exp" id="rayCocFormula"
-                    >δ = 2D·tan(θ/2) · d<sub>sensor</sub> / d<sub>display</sub></code
+                  <div class="ray-formula-exp math-formula" id="rayCocFormula"
+                    >δ = 2D·tan(θ/2) · d<sub>sensor</sub> / d<sub>display</sub></div
                   >
                   <small class="ray-formula-note" id="rayCocFormulaNote"
                     >27″ 屏 · 60 cm 观看 · 1.0′</small
@@ -714,8 +725,8 @@
                     <span>实际弥散圆 c(D)</span>
                     <b id="rayFormulaBlur">18.6 µm</b>
                   </div>
-                  <code class="ray-formula-exp" id="rayActualFormula"
-                    >c(D) = f²·|D−s| / [N·D·(s−f)]</code
+                  <div class="ray-formula-exp math-formula" id="rayActualFormula"
+                    >c(D) = f²·|D−s| / [N·D·(s−f)]</div
                   >
                   <small class="ray-formula-note" id="rayActualFormulaNote"
                     >实际焦距 f · 光圈 N · 背景距离 D</small
@@ -918,14 +929,18 @@
           <article class="panel formula-card emphasis">
             <span class="formula-index">01</span>
             <h3>允许弥散圆</h3>
-            <div class="formula">c = 2D tan(θ/2) · d<sub>s</sub> / d<sub>d</sub></div>
+            <div
+              class="formula math-formula"
+              data-tex="\delta = 2D\tan\!\left(\frac{\theta}{2}\right)\frac{d_s}{d_d}"
+              data-fallback="δ = 2D tan(θ/2) · d_s / d_d"
+            >δ = 2D tan(θ/2) · d_s / d_d</div>
             <p>
               人眼观看条件下，先把显示器上的可辨模糊换算回传感器：D
               为观看距离，θ 为视角分辨力，d<sub>s</sub> / d<sub>d</sub>
               为传感器与显示器的尺寸比。
             </p>
             <div class="formula-note">
-              经典规则：c = d<sub>sensor</sub> / 1500 ｜ 像素规则：c =
+              经典规则：δ = d<sub>sensor</sub> / 1500 ｜ 像素规则：δ =
               k · p
             </div>
           </article>
@@ -933,13 +948,21 @@
           <article class="panel formula-card">
             <span class="formula-index">02</span>
             <h3>超焦距与景深</h3>
-            <div class="formula">H = f² / (Nc) + f</div>
-            <div class="formula secondary">
-              s<sub>near</sub> = s(H−f) / (H+s−2f)
-            </div>
-            <div class="formula secondary">
-              s<sub>far</sub> = s(H−f) / (H−s)
-            </div>
+            <div
+              class="formula math-formula"
+              data-tex="H = \frac{f^2}{N\delta} + f"
+              data-fallback="H = f² / (Nδ) + f"
+            >H = f² / (Nδ) + f</div>
+            <div
+              class="formula secondary math-formula"
+              data-tex="s_{\mathrm{near}} = \frac{s(H-f)}{H+s-2f}"
+              data-fallback="s_near = s(H−f) / (H+s−2f)"
+            >s<sub>near</sub> = s(H−f) / (H+s−2f)</div>
+            <div
+              class="formula secondary math-formula"
+              data-tex="s_{\mathrm{far}} = \frac{s(H-f)}{H-s}"
+              data-fallback="s_far = s(H−f) / (H−s)"
+            >s<sub>far</sub> = s(H−f) / (H−s)</div>
             <p>
               当对焦距离 s ≥ H 时，远界变为无穷远。允许 CoC
               越小，超焦距越远，景深越窄。
@@ -949,9 +972,11 @@
           <article class="panel formula-card">
             <span class="formula-index">03</span>
             <h3>真实弥散圆</h3>
-            <div class="formula">
-              c(D) = f² |D−s| / [N · D · (s−f)]
-            </div>
+            <div
+              class="formula math-formula"
+              data-tex="c(D) = \frac{f^2\,|D-s|}{N\,D\,(s-f)}"
+              data-fallback="c(D) = f² |D−s| / [N · D · (s−f)]"
+            >c(D) = f² |D−s| / [N · D · (s−f)]</div>
             <p>
               D 为物距，s 为对焦距离。它由镜头和拍摄设置决定，与屏幕大小、观看距离无关；这正是“实际模糊”和“允许
               CoC”的分界线。
@@ -964,7 +989,11 @@
           <article class="panel formula-card">
             <span class="formula-index">04</span>
             <h3>衍射斑</h3>
-            <div class="formula">Ø<sub>Airy</sub> = 2.44 λ N (1+m)</div>
+            <div
+              class="formula math-formula"
+              data-tex="\varnothing_{\mathrm{Airy}} = 2.44\,\lambda N\,(1+m)"
+              data-fallback="Ø_Airy = 2.44 λ N (1+m)"
+            >Ø<sub>Airy</sub> = 2.44 λ N (1+m)</div>
             <p>
               小底手机像素极小，f/1.8 的艾里斑就可能覆盖约 2
               个像素。收光圈会增加景深，但也会把衍射斑推过采样极限。
@@ -1007,6 +1036,7 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+    <script src="./vendor/katex/katex.min.js"></script>
     <script type="module" src="./js/app.js"></script>
   </body>
 </html>
